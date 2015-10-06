@@ -18,6 +18,7 @@ in the middle / upper right of the screen.
 ]]
 
 DEBUG=false
+STAR_PATTERN=true
 
 -- These are the times in seconds it waits before watering a plant for a given stage.
 -- For example, plant A is planted at time 0. At time 2.8 seconds the macro queues up plant A to be watered, it then
@@ -31,8 +32,8 @@ DEBUG=false
 
 -- TODO: Scale these based on global (and ideally local) teppy time.
 FIRST_STAGE_WAIT = 2
-SECOND_STAGE_WAIT = 17
-THIRD_STAGE_WAIT = 33
+SECOND_STAGE_WAIT = 22
+THIRD_STAGE_WAIT = 32
 HARVEST_STAGE_WAIT = 52
 
 STAGE_WAITS = { FIRST_STAGE_WAIT, SECOND_STAGE_WAIT, THIRD_STAGE_WAIT, HARVEST_STAGE_WAIT }
@@ -45,7 +46,7 @@ END_OF_RUN_WAIT = 19000
 -- Minimum number of pixels to find in a row which have changed after placing a plant to decide to click that point.
 -- If the search is not finding a plants window or possibly even clicking the character even when no animations are running
 -- something has probably gone wrong with this and the corrosponding code.
-MIN_ROW_LENGTH = 9
+MIN_ROW_LENGTH = 4
 -- Controls the size of each search box. The larger this is the slower the search phase which can break everything.
 SEARCH_BOX_SCALE = 1/10
 
@@ -164,7 +165,8 @@ function closePlantWindows()
     -- Do our own quick method of closing them
     for i=1,num_plants do
         local x, y= indexToWindowPos(i)
-        srClickMouseNoMove(x+170, y-17)
+        srClickMouseNoMove(x+166, y-12)
+
     end
     -- And to be completely sure use the common slower version to finish off.
     -- TODO: This is broken as heck for now and sometimes just stalls the entire script...
@@ -191,7 +193,7 @@ function waterPlant(index, round)
     for i=1, num_waterings do
         srClickMouseNoMove(x+5,y-20,false)
         lsSleep(click_delay)
-        srClickMouseNoMove(x+55,y+13,false)
+        srClickMouseNoMove(x+25,y+13,false)
         lsSleep(click_delay)
         checkBreak()
     end
@@ -354,16 +356,44 @@ function findChangedRow(box, pixels, func)
             if pixels[y][x] ~= pixel then
                 mismatchesInRow = mismatchesInRow + 1
                 if mismatchesInRow > MIN_ROW_LENGTH then
-                    local row_middle = box.left + x - math.floor(MIN_ROW_LENGTH / 2)
-                    func(row_middle, box.top + y)
-                    return true
+                    local middle_x = x - math.floor(MIN_ROW_LENGTH / 2)
+                    local row_middle = box.left + middle_x
+                    if STAR_PATTERN then
+                        local up_pixel = srReadPixelFromBuffer(row_middle, box.top + y - 1)
+                        local down_pixel = srReadPixelFromBuffer(row_middle, box.top + y + 1)
+                        if y-1 >=0 and y+1 <= box.height then
+                            local old_up = pixels[y-1][middle_x]
+                            local old_down = pixels[y+1][middle_x]
+                            if  old_up ~= up_pixel and old_down ~= down_pixel then
+                                if distanceCentre(row_middle, box.top + y) > 40 then
+                                    func(row_middle, box.top + y)
+                                    return true
+                                end
+                            end
+                        end
+                    else
+                        func(row_middle, box.top + y)
+                        return true
+                    end
                 end
-            else
-                mismatchesInRow = 0
                 return false
             end
+            mismatchesInRow = 0
+            return false
         end
     )
+end
+
+function distanceCentre(x,y)
+    local xyWindowSize = srGetWindowSize()
+    local mid_x = math.floor(xyWindowSize[0] / 2);
+    local mid_y = math.floor(xyWindowSize[1] / 2);
+
+    local dx = math.pow(x - mid_x,2)
+    local dy = math.pow(y - mid_y,2)
+
+    return math.sqrt(dx + dy)
+
 end
 
 function iterateBoxPixels(box, xy_func, y_func)
