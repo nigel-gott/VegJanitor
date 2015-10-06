@@ -139,9 +139,6 @@ function gatherVeggies()
     two = '\n Press Shift over ATITD window to continue.'
     askForWindow(one .. two)
 
-    srLeftArrow()
-    lsSleep(3000)
-
     local searchBoxes = makeSearchBoxes()
 
     for run=1,num_runs do
