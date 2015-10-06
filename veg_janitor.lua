@@ -333,8 +333,7 @@ end
 function movePlant(direction)
     -- Direction is a string of characters each representing a move.
     for c in direction:gmatch"." do
-        -- "X" is no movement of the plant
-        if c ~= "X" then
+        if c ~= NO_DIRECTION then
             local button = MovePlantButtons[c]
             safeClick(button[0], button[1])
             lsSleep(click_delay)
