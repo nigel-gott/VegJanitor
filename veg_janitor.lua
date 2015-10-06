@@ -155,7 +155,7 @@ function gatherVeggies()
         drawWater()
         closePlantWindows()
         local stop = lsGetTimer() + END_OF_RUN_WAIT
-        local total = math.round((3600 / ((stop - start)/1000)) * num_plants * 3)
+        local total = math.floor((3600 / ((stop - start)/1000)) * num_plants * 3)
         sleepWithStatus(END_OF_RUN_WAIT, "Running at " .. total .. " veggies per hour! Waiting for animations to finish...")
     end
 end
