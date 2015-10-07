@@ -16,7 +16,6 @@ Do not stand directly on or within planting distance of actual animated water.
 ]]
 
 DEBUG=false
-STAR_PATTERN=true
 
 -- These are the times in seconds it waits before watering a plant for a given stage.
 -- For example, plant A is planted at time 0. At time 2.8 seconds the macro queues up plant A to be watered, it then
@@ -40,6 +39,10 @@ STAGE_WAITS = { FIRST_STAGE_WAIT, SECOND_STAGE_WAIT, THIRD_STAGE_WAIT, HARVEST_S
 -- then instead of clicking a newly placed plant the macro will hit your character. So if you see at the start of a new
 -- cycle the character menu being opened by the macro increase this value.
 END_OF_RUN_WAIT = 19000
+
+
+-- We don't click inside this circle around the centre of the screen.
+PLAYER_MODEL_RADIUS = 40
 
 -- Minimum number of pixels to find in a row which have changed after placing a plant to decide to click that point.
 -- If the search is not finding a plants window or possibly even clicking the character even when no animations are running
@@ -352,33 +355,36 @@ function findChangedRow(box, pixels, func)
         function(x,y,pixel)
             if pixels[y][x] ~= pixel then
                 mismatchesInRow = mismatchesInRow + 1
-                if mismatchesInRow > MIN_ROW_LENGTH then
-                    local middle_x = x - math.floor(MIN_ROW_LENGTH / 2)
-                    local row_middle = box.left + middle_x
-                    if STAR_PATTERN then
-                        local up_pixel = srReadPixelFromBuffer(row_middle, box.top + y - 1)
-                        local down_pixel = srReadPixelFromBuffer(row_middle, box.top + y + 1)
-                        if y-1 >=0 and y+1 <= box.height then
-                            local old_up = pixels[y-1][middle_x]
-                            local old_down = pixels[y+1][middle_x]
-                            if  old_up ~= up_pixel and old_down ~= down_pixel then
-                                if distanceCentre(row_middle, box.top + y) > 40 then
-                                    func(row_middle, box.top + y)
-                                    return true
-                                end
-                            end
-                        end
-                    else
-                        func(row_middle, box.top + y)
-                        return true
-                    end
-                end
+                return mismatchesInRow > MIN_ROW_LENGTH and applyIfAllowed(x,y,box,pixels,func)
+            else
+                mismatchesInRow = 0
                 return false
             end
-            mismatchesInRow = 0
-            return false
         end
     )
+end
+
+function applyIfAllowed(x,y,box,pixels,func)
+    local middle_x = x - math.floor(MIN_ROW_LENGTH / 2)
+    local actual_y = box.top + y
+    local row_middle = box.left + middle_x
+    if allowedToClick(row_middle, actual_y) then
+        local up_pixel = srReadPixelFromBuffer(row_middle, actual_y - 1)
+        local down_pixel = srReadPixelFromBuffer(row_middle, actual_y + 1)
+        if y-1 >=0 and y+1 <= box.height then
+            local old_up_pixel = pixels[y-1][middle_x]
+            local old_down_pixel = pixels[y+1][middle_x]
+            if old_up_pixel ~= up_pixel and old_down_pixel ~= down_pixel then
+                func(row_middle, actual_y)
+                return true
+            end
+        end
+    end
+    return false
+end
+
+function allowedToClick(x,y)
+    return distanceCentre(x, y) > PLAYER_MODEL_RADIUS
 end
 
 function distanceCentre(x,y)
