@@ -110,7 +110,7 @@ DirectionVectors[NO_DIRECTION]  = {0, 0}
 
 -- Used to control the plant window placement and tiling.
 WINDOW_HEIGHT=80
-WINDOW_WIDTH=200
+WINDOW_WIDTH=220
 WINDOW_OFFSET_X=150
 WINDOW_OFFSET_Y=150
 
@@ -120,6 +120,7 @@ num_plants = 9
 num_waterings = 2
 num_runs = 1
 click_delay = 50
+cabbage = false
 
 
 -- Used to record the time each plant is planted so we can properly time each plants watering stages.
@@ -161,11 +162,14 @@ function gatherVeggies()
             waterPlants(round)
             checkBreak()
         end
+        lsSleep(click_delay)
         drawWater()
+        lsSleep(click_delay)
         closePlantWindows()
         local stop = lsGetTimer() + END_OF_RUN_WAIT
         local total = math.floor((3600 / ((stop - start)/1000)) * getMaxPlantIndex() * 3)
-        sleepWithStatus(END_OF_RUN_WAIT, "Running at " .. total .. " veggies per hour! Waiting for animations to finish...")
+        lsPrintln("Running at " .. total .. " veggies per hour! Waiting for animations to finish...")
+        lsSleep(END_OF_RUN_WAIT)
     end
 end
 
@@ -173,14 +177,13 @@ function closePlantWindows()
     -- Do our own quick method of closing them
     for i=1,getMaxPlantIndex() do
         local x, y= indexToWindowPos(i)
-        srClickMouseNoMove(x+166, y-12)
-
+        if cabbage then
+            srClickMouseNoMove(x+182, y-12)
+        else
+            srClickMouseNoMove(x+166, y-12)
+        end
+        lsSleep(click_delay)
     end
-    -- And to be completely sure use the common slower version to finish off.
-    -- TODO: This is broken as heck for now and sometimes just stalls the entire script...
-    -- local columns = getNumberWindowColumns()+1
-    -- local rows = getNumberWindowRows()
-    --closeAllWindows(0,0,WINDOW_WIDTH*columns, WINDOW_HEIGHT*rows)
 end
 
 function waterPlants(round)
@@ -199,11 +202,12 @@ function waterPlant(index, round)
 
     local x, y = indexToWindowPos(index)
     checkBreak()
+    srClickMouseNoMove(x+5,y-20,false)
     lsSleep(click_delay)
     for _=1, num_waterings do
         srClickMouseNoMove(x+5,y-20,false)
         lsSleep(click_delay)
-        srClickMouseNoMove(x+25,y+13,false)
+        srClickMouseNoMove(x+50,y+13,false)
         lsSleep(click_delay)
         checkBreak()
     end
@@ -287,6 +291,7 @@ function openBedWindow(i, x, y)
     elseif x and y then
         SavedPlantLocations[i] = {x,y}
     else
+        lsPrintln("No Saved location for plant with index " .. i)
         return
     end
 
@@ -458,6 +463,7 @@ function getUserParams()
             num_waterings   = drawNumberEditBox("num_waterings", "How many waters per stage?", 2)
             num_runs        = drawNumberEditBox("num_runs", "How many runs? ", 20)
             click_delay     = drawNumberEditBox("click_delay", "What should the click delay be? ", 50)
+            cabbage         = lsCheckBox(X_PADDING, current_y, 10, WHITE, "Cabbage?", cabbage)
             got_user_params = seed_name and num_plants and num_waterings and num_runs and click_delay and drawBottomButton(lsScreenX - 5, "Next step")
         else
             drawWrappedText(WARNING, RED, X_PADDING, current_y)
