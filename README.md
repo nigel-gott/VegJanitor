@@ -16,14 +16,14 @@ Veg Janitor works at around 2000 vegetables per hour (in an optimal situation wh
 
 ### In-game options
 * Options -> Interface Options as follows:
-** Disable - Menu -> "Right-Click Pins/Unpins a Menu"
-** Enable - Menu -> "Rick-Click opens a Menu as Pinned" 
-** Enable - Menu -> "Use the chat area instead of popups for many messages"
+  * Disable - Menu -> "Right-Click Pins/Unpins a Menu"
+  * Enable - Menu -> "Rick-Click opens a Menu as Pinned" 
+  * Enable - Menu -> "Use the chat area instead of popups for many messages"
 * Options -> One-Click and Related 
-** Disable "Plant all crops where you stand"
+  * Disable "Plant all crops where you stand"
 * Options -> Video
-** Disable (check the box furthest to the left) - Shadow Quality 
-** Disable (check the box furthest to the left) - Time of Day lighting
+  * Disable (check the box furthest to the left) - Shadow Quality 
+  * Disable (check the box furthest to the left) - Time of Day lighting
 
 ###  The macros configuration
 * Plants per run - Currently the maximum number of plants per run is 12. If you are having severe problems with it not working fast enough to water plants at the end consider lowering this.
