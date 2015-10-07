@@ -13,8 +13,6 @@ In Options -> One-Click and Related -> You must DISABLE: "Plant all crops where 
 In Options -> Video -> You must set: Shadow Quality and Time of Day lighting to the lowest possible.
 Do not move once the macro is running and you must be standing on a tile with water available to refill.
 Do not stand directly on or within planting distance of actual animated water.
-Place the plant window along the bottom or left hand side of the screen, don't have any windows you don't want closed anywhere
-in the middle / upper right of the screen.
 ]]
 
 DEBUG=false
@@ -110,8 +108,8 @@ DirectionVectors[NO_DIRECTION]  = {0, 0}
 -- Used to control the plant window placement and tiling.
 WINDOW_HEIGHT=80
 WINDOW_WIDTH=200
-WINDOW_OFFSET_X=20
-WINDOW_OFFSET_Y=100
+WINDOW_OFFSET_X=150
+WINDOW_OFFSET_Y=150
 
 -- User params.
 seed_name = "Tears of Sinai"
@@ -135,8 +133,8 @@ function doit()
 end
 
 function gatherVeggies()
-    local min_jugs = num_waterings * num_plants * 3
-    local one = 'You will need ' .. min_jugs .. ' jugs of water and at minimum ' .. (num_plants+8) .. ' seeds \n'
+    local min_jugs = num_waterings * getMaxPlantIndex() * 3
+    local one = 'You will need ' .. min_jugs .. ' jugs of water and at minimum ' .. (getMaxPlantIndex()+8) .. ' seeds \n'
     local two = '\n Press Shift over ATITD window to continue.'
     askForWindow(one .. two)
 
@@ -156,14 +154,14 @@ function gatherVeggies()
         drawWater()
         closePlantWindows()
         local stop = lsGetTimer() + END_OF_RUN_WAIT
-        local total = math.floor((3600 / ((stop - start)/1000)) * num_plants * 3)
+        local total = math.floor((3600 / ((stop - start)/1000)) * getMaxPlantIndex() * 3)
         sleepWithStatus(END_OF_RUN_WAIT, "Running at " .. total .. " veggies per hour! Waiting for animations to finish...")
     end
 end
 
 function closePlantWindows()
     -- Do our own quick method of closing them
-    for i=1,num_plants do
+    for i=1,getMaxPlantIndex() do
         local x, y= indexToWindowPos(i)
         srClickMouseNoMove(x+166, y-12)
 
@@ -176,7 +174,7 @@ function closePlantWindows()
 end
 
 function waterPlants(round)
-    for i=1,num_plants do
+    for i=1,getMaxPlantIndex() do
         waterPlant(i, round)
         checkBreak()
     end
@@ -427,8 +425,9 @@ function getUserParams()
         current_y = 10
 
         if not got_user_params then
+            local max_plants = table.getn(Directions)
             seed_name       = drawEditBox("seed_name", "What is the name of the seed?", "Tears of Sinai", false)
-            num_plants      = drawNumberEditBox("num_plants", "How many to plant per run? ", 13)
+            num_plants      = drawNumberEditBox("num_plants", "How many to plant per run? Max " .. max_plants, 13)
             num_waterings   = drawNumberEditBox("num_waterings", "How many waters per stage?", 2)
             num_runs        = drawNumberEditBox("num_runs", "How many runs? ", 20)
             click_delay     = drawNumberEditBox("click_delay", "What should the click delay be? ", 50)
@@ -479,7 +478,7 @@ function drawText(text, colour, x, y)
 end
 
 function drawWrappedText(text, colour, x, y)
-    lsPrintWrapped(x, y, 10, lsScreenX-10, 0.60, 0.60, colour, text)
+    lsPrintWrapped(x, y, 10, lsScreenX-10, 0.65, 0.65, colour, text)
 end
 
 function drawBottomButton(xOffset, text)
