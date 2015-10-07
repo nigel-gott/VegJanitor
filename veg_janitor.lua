@@ -28,9 +28,9 @@ DEBUG=false
 -- to harvest before it is ready and trying to rewater a plants 3rd stage. Increase the harvest wait to hopefully fix this.
 
 -- TODO: Scale these based on global (and ideally local) teppy time.
-FIRST_STAGE_WAIT = 2
-SECOND_STAGE_WAIT = 22
-THIRD_STAGE_WAIT = 32
+FIRST_STAGE_WAIT = 4
+SECOND_STAGE_WAIT = 24
+THIRD_STAGE_WAIT = 34
 HARVEST_STAGE_WAIT = 52
 
 STAGE_WAITS = { FIRST_STAGE_WAIT, SECOND_STAGE_WAIT, THIRD_STAGE_WAIT, HARVEST_STAGE_WAIT }
@@ -38,11 +38,11 @@ STAGE_WAITS = { FIRST_STAGE_WAIT, SECOND_STAGE_WAIT, THIRD_STAGE_WAIT, HARVEST_S
 -- How long to wait for the characters animations to stop at the end of each planting run. If this is too low
 -- then instead of clicking a newly placed plant the macro will hit your character. So if you see at the start of a new
 -- cycle the character menu being opened by the macro increase this value.
-END_OF_RUN_WAIT = 19000
+END_OF_RUN_WAIT = 0
 
 
 -- We don't click inside this circle around the centre of the screen.
-PLAYER_MODEL_RADIUS = 40
+PLAYER_MODEL_RADIUS = 70
 
 -- Minimum number of pixels to find in a row which have changed after placing a plant to decide to click that point.
 -- If the search is not finding a plants window or possibly even clicking the character even when no animations are running
@@ -128,6 +128,8 @@ PlantTimes = {}
 -- searching each time.
 SavedPlantLocations = {}
 
+ANIMATION_BOX = {}
+
 function doit()
     while true do
         getUserParams()
@@ -143,9 +145,14 @@ function gatherVeggies()
 
     local searchBoxes = makeSearchBoxes()
 
+    srLeftArrow()
+    lsSleep(click_delay)
+
     for _=1,num_runs do
         local start = lsGetTimer()
         checkBreak()
+
+        OpenWindows = {}
 
         drawWater()
         lsSleep(3000)
@@ -178,7 +185,9 @@ end
 
 function waterPlants(round)
     for i=1,getMaxPlantIndex() do
-        waterPlant(i, round)
+        if OpenWindows[i] then
+            waterPlant(i, round)
+        end
         checkBreak()
     end
 end
@@ -221,6 +230,8 @@ function makeSearchBoxes()
     local mid_x = math.floor(xyWindowSize[0] / 2) - search_size / 3;
     local mid_y = math.floor(xyWindowSize[1] / 2) - search_size / 3;
 
+    ANIMATION_BOX = makeBox(mid_x - 125, mid_y - 30, 100, 60)
+
     for dir_string,dir_vector in pairs(DirectionVectors) do
         local x = mid_x + dir_vector[1] * 40 - 20
         local y = mid_y + dir_vector[2] * 40 - 20
@@ -254,7 +265,8 @@ function plantSeed(i, direction, search_box)
     movePlant(direction)
     safeClick(BuildButton[0], BuildButton[1])
     PlantTimes[i] = lsGetTimer()
-    lsSleep(click_delay)
+    spot = getWaitSpot(BuildButton[0], BuildButton[1])
+    waitForChange(spot, click_delay*2)
 
     if SavedPlantLocations[i] then
         openBedWindow(i)
@@ -269,11 +281,13 @@ function plantSeed(i, direction, search_box)
 end
 
 function openBedWindow(i, x, y)
-    if SavedPlantLocations[i] then
+    if SavedPlantLocations[i] and SavedPlantLocations[i][1] ~= 0 and SavedPlantLocations[i][2] ~= 0 then
         x = SavedPlantLocations[i][1]
         y = SavedPlantLocations[i][2]
-    else
+    elseif x and y then
         SavedPlantLocations[i] = {x,y}
+    else
+        return
     end
 
     local drag_x, drag_y = indexToWindowPos(i)
@@ -283,7 +297,9 @@ function openBedWindow(i, x, y)
     srSetMousePos(drag_x, drag_y)
     lsSleep(click_delay)
     safeClick(x,y,1)
-    lsSleep(click_delay)
+    spot = getWaitSpot(drag_x, drag_y)
+    success = waitForChange(spot, click_delay*2)
+    OpenWindows[i] = success
 end
 
 
@@ -312,7 +328,8 @@ function clickPlantButton()
     local plantButton = findText(seed_name)
     if plantButton then
         clickText(plantButton, 1)
-        lsSleep(click_delay)
+        waitSpot = getWaitSpot(0,0)
+        waitForChange(waitSpot, click_delay*3)
     else
         error("Text " .. seed_name .. " Not found.")
     end
@@ -384,7 +401,11 @@ function applyIfAllowed(x,y,box,pixels,func)
 end
 
 function allowedToClick(x,y)
-    return distanceCentre(x, y) > PLAYER_MODEL_RADIUS
+    return distanceCentre(x, y) > PLAYER_MODEL_RADIUS and not inside(x,y,ANIMATION_BOX)
+end
+
+function inside(x,y,box)
+    return (x >= box.left and x <= box.right) and (y >= box.top and y <= box.bottom)
 end
 
 function distanceCentre(x,y)
