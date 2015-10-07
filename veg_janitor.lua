@@ -42,7 +42,7 @@ END_OF_RUN_WAIT = 0
 
 
 -- We don't click inside this circle around the centre of the screen.
-PLAYER_MODEL_RADIUS = 70
+PLAYER_MODEL_RADIUS = 50
 
 -- Minimum number of pixels to find in a row which have changed after placing a plant to decide to click that point.
 -- If the search is not finding a plants window or possibly even clicking the character even when no animations are running
@@ -156,7 +156,9 @@ function gatherVeggies()
         OpenWindows = {}
 
         drawWater()
+        checkBreak()
         lsSleep(3000)
+        checkBreak()
         plantSeeds(searchBoxes)
         for round=1,4 do
             waterPlants(round)
