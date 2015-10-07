@@ -46,7 +46,7 @@ END_OF_RUN_WAIT = 0
 
 
 -- We don't click inside this circle around the centre of the screen.
-PLAYER_MODEL_RADIUS = 50
+PLAYER_MODEL_RADIUS = 60
 
 -- Minimum number of pixels to find in a row which have changed after placing a plant to decide to click that point.
 -- If the search is not finding a plants window or possibly even clicking the character even when no animations are running
@@ -134,6 +134,7 @@ PlantTimes = {}
 SavedPlantLocations = {}
 
 ANIMATION_BOX = {}
+ARM_BOX = {}
 
 function doit()
     while true do
@@ -142,6 +143,7 @@ function doit()
     end
 end
 
+
 function gatherVeggies()
     local min_jugs = num_waterings * getMaxPlantIndex() * 3
     local one = 'You will need ' .. min_jugs .. ' jugs of water and at minimum ' .. (getMaxPlantIndex()+8) .. ' seeds \n'
@@ -149,7 +151,13 @@ function gatherVeggies()
     askForWindow(one .. two)
 
     local searchBoxes = makeSearchBoxes()
+    local xyWindowSize = srGetWindowSize()
+    local mid_x = math.floor(xyWindowSize[0] / 2);
+    local mid_y = math.floor(xyWindowSize[1] / 2);
+    ANIMATION_BOX = makeBox(mid_x - 60, mid_y - 50, 105, 85)
+    ARM_BOX = makeBox(mid_x - 90, mid_y - 20, 80, 25)
 
+    first_run = true
     for _=1,num_runs do
         local start = lsGetTimer()
         checkBreak()
@@ -165,14 +173,14 @@ function gatherVeggies()
             waterPlants(round)
             checkBreak()
         end
-        lsSleep(click_delay)
         drawWater()
-        lsSleep(click_delay)
+        lsSleep(click_delay*2)
         closePlantWindows()
         local stop = lsGetTimer() + END_OF_RUN_WAIT
         local total = math.floor((3600 / ((stop - start)/1000)) * getMaxPlantIndex() * 3)
         lsPrintln("Running at " .. total .. " veggies per hour! Waiting for animations to finish...")
         lsSleep(END_OF_RUN_WAIT)
+        first_run = false
     end
 end
 
@@ -237,13 +245,11 @@ function makeSearchBoxes()
     local mid_x = math.floor(xyWindowSize[0] / 2) - search_size / 3;
     local mid_y = math.floor(xyWindowSize[1] / 2) - search_size / 3;
 
-    ANIMATION_BOX = makeBox(mid_x - 125, mid_y - 30, 100, 60)
-
     for dir_string,dir_vector in pairs(DirectionVectors) do
         local x = mid_x + dir_vector[1] * 40 - 20
         local y = mid_y + dir_vector[2] * 40 - 20
         local box = makeBox(x,y, search_size, search_size)
-        box.search_from_bottom = dir_string == WEST or dir_string == DOUBLE_WEST
+        box.search_from_bottom = dir_string == WEST or dir_string == DOUBLE_WEST or NORTH_EAST
         search_boxes[dir_string] = box
     end
     return search_boxes
@@ -255,7 +261,9 @@ function plantSeeds(search_boxes)
         local direction = Directions[i]
         local search_box = search_boxes[direction]
         checkBreak()
-        plantSeed(i, direction, search_box)
+        if SavedPlantLocations[i] or first_run then
+            plantSeed(i, direction, search_box)
+        end
     end
 end
 
@@ -292,7 +300,7 @@ function openBedWindow(i, x, y)
         x = SavedPlantLocations[i][1]
         y = SavedPlantLocations[i][2]
     elseif x and y then
-        SavedPlantLocations[i] = {x,y}
+        SavedPlantLocations[i] = {x,y }
     else
         lsPrintln("No Saved location for plant with index " .. i)
         return
@@ -304,7 +312,7 @@ function openBedWindow(i, x, y)
     -- TODO: problably do something different as this is the only thing that takes mouse control from the user.
     srSetMousePos(drag_x, drag_y)
     lsSleep(click_delay)
-    safeClick(x,y,1)
+    srClickMouseNoMove(x,y,1)
     spot = getWaitSpot(drag_x, drag_y)
     success = waitForChange(spot, click_delay*2)
     OpenWindows[i] = success
@@ -409,7 +417,7 @@ function applyIfAllowed(x,y,box,pixels,func)
 end
 
 function allowedToClick(x,y)
-    return distanceCentre(x, y) > PLAYER_MODEL_RADIUS and not inside(x,y,ANIMATION_BOX)
+    return distanceCentre(x, y) > PLAYER_MODEL_RADIUS and not inside(x,y,ANIMATION_BOX) and not inside(x,y,ARM_BOX)
 end
 
 function inside(x,y,box)
