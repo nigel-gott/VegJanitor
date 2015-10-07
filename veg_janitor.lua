@@ -86,7 +86,7 @@ BuildButton = makePoint(31, 135)
 
 -- Directions in which to move each sucessive plant before building the plant.
 -- NO_DIRECTION represents no move and building the plant on the player.
-Directions = { SOUTH_WEST, SOUTH, DOUBLE_SOUTH , SOUTH_EAST, DOUBLE_WEST, WEST, NO_DIRECTION, EAST, DOUBLE_EAST,
+Directions = { SOUTH_WEST, SOUTH, DOUBLE_SOUTH , SOUTH_EAST, DOUBLE_WEST, WEST, EAST, DOUBLE_EAST,
     NORTH_WEST, NORTH, DOUBLE_NORTH, NORTH_EAST }
 
 -- Vectors for each direction used to generate the boxes in which to search for the newly placed plant in a given
@@ -135,14 +135,14 @@ function doit()
 end
 
 function gatherVeggies()
-    min_jugs = num_waterings * num_plants * 3
-    one = 'You will need ' .. min_jugs .. ' jugs of water and at minimum ' .. (num_plants+8) .. ' seeds \n'
-    two = '\n Press Shift over ATITD window to continue.'
+    local min_jugs = num_waterings * num_plants * 3
+    local one = 'You will need ' .. min_jugs .. ' jugs of water and at minimum ' .. (num_plants+8) .. ' seeds \n'
+    local two = '\n Press Shift over ATITD window to continue.'
     askForWindow(one .. two)
 
     local searchBoxes = makeSearchBoxes()
 
-    for run=1,num_runs do
+    for _=1,num_runs do
         local start = lsGetTimer()
         checkBreak()
 
@@ -190,7 +190,7 @@ function waterPlant(index, round)
     local x, y = indexToWindowPos(index)
     checkBreak()
     lsSleep(click_delay)
-    for i=1, num_waterings do
+    for _=1, num_waterings do
         srClickMouseNoMove(x+5,y-20,false)
         lsSleep(click_delay)
         srClickMouseNoMove(x+25,y+13,false)
@@ -456,7 +456,7 @@ function drawEditBox(key, text, default, validateNumber)
     drawTextUsingCurrent(text, WHITE)
     local width = validateNumber and 50 or 200
     local height = 30
-    done, result = lsEditBox(key, X_PADDING, current_y, 0, width, height, 1.0, 1.0, BLACK, default)
+    local done, result = lsEditBox(key, X_PADDING, current_y, 0, width, height, 1.0, 1.0, BLACK, default)
     if validateNumber then
         result = tonumber(result)
     elseif result == "" then
