@@ -4,7 +4,7 @@ Veg Janitor works at around 2000 vegetables per hour (in an optimal situation wh
 
 ## Setting up the Macro
 ### Installation
-* Download https://raw.githubusercontent.com/nigggle/VegJanitor/master/veg_janitor.lua
+* Download the latest release here: https://github.com/nigggle/VegJanitor/releases
 * Place veg_janitor.lua in C:\Games\Automato\games\ATITD\scripts
 
 ### What to carry and where to be
