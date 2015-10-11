@@ -16,13 +16,14 @@ In Options -> One-Click and Related -> You must DISABLE: "Plant all crops where 
 In Options -> Video -> You must set: Shadow Quality and Time of Day lighting to the lowest possible.
 Do not move once the macro is running and you must be standing on a tile with water available to refill.
 Do not stand directly on or within planting distance of actual animated water.
-POINT YOUR CHARACTER WEST OR BAD THINGS MIGHT HAPPEN THIS IS A WIERD MACRO OKAY
-
 ]]
 
 DEBUG=false
 
-SEARCH_RETRYS=1
+-- How many times to search for a plant / try open a bed window before giving up.
+SEARCH_RETRYS=3
+
+-- How many pixels in a NxN grid to look for before
 MATCH_GRID_SIZE=4
 
 -- These are the times in seconds it waits before watering a plant for a given stage.
@@ -48,13 +49,6 @@ STAGE_WAITS = { FIRST_STAGE_WAIT, SECOND_STAGE_WAIT, THIRD_STAGE_WAIT, HARVEST_S
 -- cycle the character menu being opened by the macro increase this value.
 END_OF_RUN_WAIT = 0
 
--- We don't click inside this circle around the centre of the screen.
-PLAYER_MODEL_RADIUS = 60
-
--- Minimum number of pixels to find in a row which have changed after placing a plant to decide to click that point.
--- If the search is not finding a plants window or possibly even clicking the character even when no animations are running
--- something has probably gone wrong with this and the corrosponding code.
-MIN_ROW_LENGTH = 8
 -- Controls the size of each search box. The larger this is the slower the search phase which can break everything.
 SEARCH_BOX_SCALE = 1/10
 
