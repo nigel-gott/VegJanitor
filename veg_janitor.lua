@@ -58,14 +58,20 @@ RED = 0xFF2020ff
 BLACK = 0x000000ff
 WHITE = 0xFFFFFFff
 
-CABBAGE = "Bastet's Yielding"
 LEEKS = "Horus' Grain"
 SEED_NAMES = {
     "Tears of Sinai",
     "Green Leaf",
-    CABBAGE,
+    "Bastet's Yielding",
     LEEKS,
-    "Apep's Crop"
+    "Apep's Crop",
+}
+SEED_TYPES = {
+    "Onions",
+    "Carrots",
+    "Cabbage",
+    "Leeks",
+    "Garlic",
 }
 
 
@@ -165,15 +171,17 @@ function gatherVeggies(config)
             checkBreak()
         end
 
-        lsSleep(click_delay*5)
+        plants:iterate(Plant.close, config)
+
+        lsSleep(click_delay)
         drawWater()
         lsSleep(click_delay*5)
         checkBreak()
 
-        plants:iterate(Plant.close, config)
 
         local stop = lsGetTimer() + END_OF_RUN_WAIT
         local total = math.floor((3600 / ((stop - start)/1000)) * config.num_plants * 3)
+        lsPrintln("Running at " .. total .. " veg per hour. ")
         lsSleep(END_OF_RUN_WAIT)
     end
 end
@@ -256,25 +264,26 @@ function Plant:openBedWindow(alternate_drag)
     self.window_open = false
     local window_spot = getWaitSpotAt(self.window_pos + {5,5})
     for _=1, SEARCH_RETRYS do
-        waitForPixelsAt(self.saved_plant_location, self.location.box, self.saved_plant_pixels)
-        if alternate_drag then
-            local open_spot = getWaitSpotAt(self.saved_plant_location + {5,5})
-            click(self.saved_plant_location,true,true)
-            if waitForChange(open_spot,click_delay*5) then
-                lsSleep(click_delay)
-                drag(self.saved_plant_location.x+5,self.saved_plant_location.y+5,self.window_pos.x,self.window_pos.y,click_delay*2)
+        if waitForPixelsAt(self.saved_plant_location, self.location.box, self.saved_plant_pixels) then
+            if alternate_drag then
+                local open_spot = getWaitSpotAt(self.saved_plant_location + {5,5})
+                click(self.saved_plant_location,true,true)
+                if waitForChange(open_spot,click_delay*5) then
+                    lsSleep(click_delay)
+                    drag(self.saved_plant_location.x+5,self.saved_plant_location.y+5,self.window_pos.x,self.window_pos.y,click_delay*2)
+                end
+            else
+                moveMouse(self.window_pos)
+                click(self.saved_plant_location ,1)
             end
-        else
-            moveMouse(self.window_pos)
-            click(self.saved_plant_location ,1)
-        end
 
-        self.window_open = waitForChange(window_spot, click_delay*5)
-        if self.window_open then
-            break
+            self.window_open = waitForChange(window_spot, click_delay*5)
+            if self.window_open then
+                break
+            end
         end
         lsPrintln("Bed window open retry for plant " .. self.index)
-        lsSleep(tick_delay)
+        lsSleep(click_delay)
     end
 
     if not self.window_open then
@@ -283,26 +292,21 @@ function Plant:openBedWindow(alternate_drag)
 end
 
 function waitForPixelsAt(vector, box, pixels)
-    while true do
-        local half_match_size = math.floor(MATCH_GRID_SIZE/2)
-        local box_location_x = vector.x - half_match_size
-        local box_location_y = vector.y - half_match_size
-        local match_box = makeBox(box_location_x, box_location_y, MATCH_GRID_SIZE, MATCH_GRID_SIZE)
-        local all_same = true
-        iterateBoxPixels(match_box, function(x,y,pixel)
-            local pixels_x = box_location_x + x - box.left
-            local pixels_y = box_location_y + y - box.top
-            local old_pixel = pixels[pixels_y][pixels_x]
-            local diff = calculatePixelDiffs(old_pixel, pixel)
-            local diff_ok = diff[1] < 10 and diff[2] < 10 and diff[3] < 10
-            all_same = all_same and diff_ok
-        end)
-        if all_same then
-            return
-        else
-            sleepWithStatus(tick_delay, "Waiting for plant pixel to reappear")
-        end
-    end
+    local match_size = MATCH_GRID_SIZE
+    local half_match_size = math.floor(match_size/2)
+    local box_location_x = vector.x - half_match_size
+    local box_location_y = vector.y - half_match_size
+    local match_box = makeBox(box_location_x, box_location_y, match_size, match_size)
+    local all_same = true
+    iterateBoxPixels(match_box, function(x,y,pixel)
+        local pixels_x = box_location_x + x - box.left
+        local pixels_y = box_location_y + y - box.top
+        local old_pixel = pixels[pixels_y][pixels_x]
+        local diff = calculatePixelDiffs(old_pixel, pixel)
+        local diff_ok = diff[1] < 10 and diff[2] < 10 and diff[3] < 10
+        all_same = all_same and diff_ok
+    end)
+    return all_same
 end
 
 
@@ -337,18 +341,18 @@ function Plant:water(args)
         self.window_open = false
         return
     end
-    this_loc = Vector:new{x=this_loc[0],y=this_loc[1]}
+    this_loc = Vector:new{x=this_loc[0],y=this_loc[1]+10}
 
     click(this_loc)
     for _=1, args.num_waterings do
-        click(this_loc+{0,35})
+        click(this_loc+{0,25})
         click(this_loc)
         checkBreak()
     end
 end
 
 function Plant:close(config)
-    local search_box = makeBox(self.window_pos.x+120,self.window_pos.y-50,80,60)
+    local search_box = makeBox(self.window_pos.x+120,self.window_pos.y-50,80,80)
     srReadScreen()
     local unpin_loc = srFindImageInRange("blank.png", search_box.left, search_box.top, search_box.width, search_box.height, 4800)
     if not unpin_loc then
@@ -356,7 +360,11 @@ function Plant:close(config)
         return
     end
     unpin_loc = Vector:new{x=unpin_loc[0],y=unpin_loc[1] }
-    click(unpin_loc+{25,10})
+    if not inside(unpin_loc+{25,10},search_box) then
+        lsPrintln("Trying to unpin outside of the search box????")
+    else
+        click(unpin_loc+{25,10})
+    end
 end
 
 -- Create a table of direction string -> box. Each box is where we will search the plant placed for that given direction
@@ -443,14 +451,14 @@ function findChangedRow(box, pixels, func)
         end
     )
 
-    local search_from_left = box.direction.x < 0
+    local search_from_left = box.direction.x <= 0
     local search_from_top = box.direction.y < 0
 
-    local y_start, y_end, y_inc = 0, math.floor(box.height/MATCH_GRID_SIZE), 1
+    local y_start, y_end, y_inc = 0, math.floor(box.height/MATCH_GRID_SIZE)-1, 1
     if not search_from_top then
         y_start, y_end, y_inc = y_end, y_start, -1
     end
-    local x_start, x_end, x_inc = 0, math.floor(box.width/MATCH_GRID_SIZE), 1
+    local x_start, x_end, x_inc = 0, math.floor(box.width/MATCH_GRID_SIZE)-1, 1
     if not search_from_left then
         x_start, x_end, x_inc = x_end, x_start, -1
     end
@@ -460,7 +468,9 @@ function findChangedRow(box, pixels, func)
             local all_changed = true
             for j=0,MATCH_GRID_SIZE-1 do
                 for k=0,MATCH_GRID_SIZE-1 do
-                    all_changed = all_changed and changed[y*MATCH_GRID_SIZE+j][x*MATCH_GRID_SIZE+k]
+                    local changed_x = x*MATCH_GRID_SIZE+k
+                    local changed_y = y*MATCH_GRID_SIZE+j
+                    all_changed = all_changed and changed[changed_y][changed_x]
                 end
             end
             if all_changed then
@@ -481,7 +491,8 @@ function debugShowBox(box)
     sleepWithStatus(2000, "BOT RIGHT")
 end
 
-function inside(x,y,box)
+function inside(vector,box)
+    local x, y = vector.x, vector.y
     return (x >= box.left and x <= box.right) and (y >= box.top and y <= box.bottom)
 end
 
@@ -522,12 +533,16 @@ function getUserParams()
     local got_user_params = false
     local config = {alternate_drag=readSetting("alternate_drag")}
     local seed_index = readSetting("seed_index",1)
+    local display_seed_names = {}
+    for i=1,5 do
+        display_seed_names[i] = SEED_NAMES[i] .. " (" .. SEED_TYPES[i] .. ")"
+    end
     while not is_done do
         current_y = 10
 
         if not got_user_params then
             local max_plants       = MAX_PLANTS
-            seed_index             = lsDropdown("seed_name", X_PADDING, current_y, 10, lsScreenX - 10, seed_index, SEED_NAMES)
+            seed_index             = lsDropdown("seed_name", X_PADDING, current_y, 10, lsScreenX - 10, seed_index, display_seed_names)
             current_y = 50
             config.num_plants      = drawNumberEditBox("num_plants", "How many to plant per run? Max " .. max_plants, 13)
             config.num_runs        = drawNumberEditBox("num_runs", "How many runs? ", 20)
@@ -556,7 +571,6 @@ function getUserParams()
     writeSetting("alternate_drag",config.alternate_drag)
     config.num_plants = limitMaxPlants(config.num_plants)
     config.seed_name = SEED_NAMES[seed_index]
-    config.cabbage = config.seed_name == CABBAGE
     config.num_waterings = config.seed_name == LEEKS and 3 or 2
     click_delay = config.click_delay
     return config
@@ -653,7 +667,7 @@ function click(vector, right_click, show_mouse)
     if show_mouse then
         srClickMouse(vector.x, vector.y, right_click)
     else
-        srClickMouseNoMove(vector.x, vector.y, right_click)
+        safeClick(vector.x, vector.y, right_click)
     end
     lsSleep(click_delay)
 end
