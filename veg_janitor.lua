@@ -302,11 +302,9 @@ function waitForPixelsAt(vector, box, pixels)
         local pixels_x = box_location_x + x - box.left
         local pixels_y = box_location_y + y - box.top
         local old_pixel = pixels[pixels_y][pixels_x]
-        if old_pixel then
-            local diff = calculatePixelDiffs(old_pixel, pixel)
-            local diff_ok = diff[1] < 10 and diff[2] < 10 and diff[3] < 10
-            all_same = all_same and diff_ok
-        end
+        local diff = calculatePixelDiffs(old_pixel, pixel)
+        local diff_ok = diff[1] < 10 and diff[2] < 10 and diff[3] < 10
+        all_same = all_same and diff_ok
     end)
     return all_same
 end
@@ -377,7 +375,7 @@ function makeSearchBox(direction)
     local xyWindowSize = srGetWindowSize()
     local search_size = math.floor(xyWindowSize[0] * SEARCH_BOX_SCALE)
     local mid = getScreenMiddle()
-    local offset_mid = mid - {search_size / 3, search_size / 3 }
+    local offset_mid = mid - {math.floor(search_size / 3), math.floor(search_size / 3) }
 
     local top_left = offset_mid + direction*40 - Vector:new{20,20 }
 
