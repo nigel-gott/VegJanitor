@@ -4,8 +4,7 @@ Veg Janitor works at around 2000 vegetables per hour (in an optimal situation wh
 
 ## Setting up the Macro
 ### Installation
-* Download the latest release here: https://github.com/nigggle/VegJanitor/releases
-* Place veg_janitor.lua in C:\Games\Automato\games\ATITD\scripts
+* The macro is now included in automato itself. Just find it in ATITD->veg_janitor.lua
 
 ### What to carry and where to be
 * Have 72 jugs for a seed that needs 2 waters per cycle and 108 for a seed that needs 3.
