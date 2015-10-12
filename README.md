@@ -4,13 +4,11 @@ Veg Janitor works at around 2000 vegetables per hour (in an optimal situation wh
 
 ## Setting up the Macro
 ### Installation
-* Download the latest release here: https://github.com/nigggle/VegJanitor/releases
-* Place veg_janitor.lua in C:\Games\Automato\games\ATITD\scripts
+* The macro is now included in automato itself. Just find it in ATITD->veg_janitor.lua
 
 ### What to carry and where to be
 * Have 72 jugs for a seed that needs 2 waters per cycle and 108 for a seed that needs 3.
 * You need at least 20 seeds. Due to lag / macro errors it is common to loose a seed or two every couple of runs, if you fall below number of seeds required for a run bad things happen. 
-* Point your character model west or when a new run starts the macro might accidentally click your character doing an animation instead of a plant. 
 * Do not stand too close to or on-top of water, the animation screws with the vegetable finding mechanism.
 * Zoom in using F8 F8 F8 and then press Alt + L to lock the camera so you don't accidentally zoom out partway through
 
