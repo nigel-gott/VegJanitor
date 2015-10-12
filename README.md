@@ -13,6 +13,8 @@ Veg Janitor works at around 2000 vegetables per hour (in an optimal situation wh
 * Zoom in using F8 F8 F8 and then press Alt + L to lock the camera so you don't accidentally zoom out partway through
 
 ### In-game options
+* Make sure you have pinned the plant window for the seed you wish to use. 
+* Make sure your ATITD window is fullscreen. 
 * Options -> Interface Options as follows:
   * Disable - Menu -> "Right-Click Pins/Unpins a Menu"
   * Enable - Menu -> "Rick-Click opens a Menu as Pinned" 
