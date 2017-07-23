@@ -1,6 +1,6 @@
 #Tale 7 Vegetable Macro
 
-Veg Janitor works at around 2000 vegetables per hour (in an optimal situation where you do not ever have to move which never happens). It is still a work in progress, feel free to chat me ingame for help, bug reports, suggestions etc. Here is a guide to getting started with it : 
+Veg Janitor works at around 2000 vegetables per hour (in an optimal situation where you do not ever have to move which never happens). . Here is a guide to getting started with it : 
 
 ## Setting up the Macro
 ### Installation
